@@ -1,0 +1,31 @@
+#ifndef __ENGINE_H__
+#define __ENGINE_H__
+
+#include <stdint.h>
+
+#include "../model/model.h"
+#include "../util/generator/mt19937.h"
+#include "../util/data_structure/priority_queue.h"
+
+struct Engine {
+    double time_now, time_end;
+    struct MT19937 gen;
+    struct Model model;
+    struct PriorityQueue events;
+};
+
+int engine_initialize(struct Engine *engine,
+                      double time_end,
+                      uint32_t seed,
+                      uint64_t num_vehicles,
+                      uint64_t size,
+                      uint64_t *from,
+                      uint64_t *to,
+                      double *distance,
+                      uint64_t edge,
+                      double *rate,
+                      uint32_t *upper_limit,
+                      double *production_rate);
+int engine_finalize(struct Engine *engine);
+
+#endif
