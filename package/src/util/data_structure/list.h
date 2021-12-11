@@ -1,5 +1,5 @@
-#ifndef __LIST_H__
-#define __LIST_H__
+#ifndef LIST_H__
+#define LIST_H__
 
 struct ListNode {
     void *data;

@@ -1,5 +1,5 @@
-#ifndef __ENGINE_H__
-#define __ENGINE_H__
+#ifndef ENGINE_H__
+#define ENGINE_H__
 
 #include <stdint.h>
 
@@ -26,6 +26,7 @@ int engine_initialize(struct Engine *engine,
                       double *rate,
                       uint32_t *upper_limit,
                       double *production_rate);
+int engine_run(struct Engine *engine, uint64_t iter, uint8_t verbosity);
 int engine_finalize(struct Engine *engine);
 
 #endif

@@ -67,7 +67,7 @@ int main(void) {
                                 upper_limit,
                                 production_rate);
     LOG_ERR;
-    ret = model_print(&engine.model);
+    ret = engine_run(&engine, 1, 2);
     LOG_ERR;
     ret = engine_finalize(&engine);
     LOG_ERR;

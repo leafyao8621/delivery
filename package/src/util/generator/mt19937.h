@@ -1,5 +1,5 @@
-#ifndef _MT19937_H_
-#define _MT19937_H_
+#ifndef MT19937_H_
+#define MT19937_H_
 
 struct MT19937 {
     int index;

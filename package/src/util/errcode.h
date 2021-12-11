@@ -1,5 +1,5 @@
-#ifndef __ERRCODE_H__
-#define __ERRCODE_H__
+#ifndef ERRCODE_H__
+#define ERRCODE_H__
 
 #define ERR_OK 0
 #define ERR_INPUT_NULL 1

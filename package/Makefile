@@ -1,5 +1,5 @@
 CC = gcc
-SRC = $(wildcard src/test.c) $(wildcard src/*/*.c) $(wildcard src/*/*/*.c)
+SRC = $(wildcard src/test.c) $(wildcard src/*/*.c) $(wildcard src/*/*/*.c) $(wildcard src/*/*/*/*.c)
 OBJ = $(SRC:.c=.o)
 BIN = test
 

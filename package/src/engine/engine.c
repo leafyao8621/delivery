@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "engine.h"
+#include "event/event.h"
 #include "../util/errcode.h"
 
 int engine_initialize(struct Engine *engine,
@@ -41,6 +42,45 @@ int engine_initialize(struct Engine *engine,
         return ret;
     }
     return ERR_OK;
+}
+
+static void print_engine(struct Engine *engine) {
+    printf("time_now: %lf\ntime_end: %lf\n",
+           engine->time_now,
+           engine->time_end);
+    if (engine->events.size) {
+        event_print(engine->events.heap->data);
+    }
+    model_print(&engine->model);
+}
+
+static int main_loop(struct Engine *engine, uint8_t verbosity) {
+    if (!engine) {
+        return ERR_INPUT_NULL;
+    }
+    engine->time_now = 0;
+
+    if (verbosity == 2) {
+        print_engine(engine);
+    }
+    return ERR_OK;
+}
+
+int engine_run(struct Engine *engine, uint64_t iter, uint8_t verbosity) {
+    if (!engine) {
+        return ERR_INPUT_NULL;
+    }
+    int ret = ERR_OK;
+    for (uint64_t i = 0; i < iter; ++i) {
+        if (verbosity) {
+            printf("iteration: %lu\n", i);
+        }
+        ret = main_loop(engine, verbosity);
+        if (ret) {
+            return ret;
+        }
+    }
+    return ret;
 }
 
 int engine_finalize(struct Engine *engine) {
