@@ -5,6 +5,23 @@
 #define LOG_ERR printf("errcode: %d\nerrmsg: %s\n", ret, errcode_lookup[ret])
 
 int main(void) {
+    double unit_cost[3] = {
+        3,
+        4,
+        5
+    };
+    double unit_revenue[3] = {
+        4.5,
+        6,
+        7.5
+    };
+    double tolerance[5] = {
+        25,
+        27,
+        26,
+        22,
+        24
+    };
     uint64_t from[7] = {
         0,
         0,
@@ -55,10 +72,14 @@ int main(void) {
     };
     struct Engine engine;
     int ret = engine_initialize(&engine,
-                                3600000,
+                                360,
                                 1000,
                                 3,
+                                10000,
+                                unit_cost,
+                                unit_revenue,
                                 5,
+                                tolerance,
                                 from,
                                 to,
                                 distance,

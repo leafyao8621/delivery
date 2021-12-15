@@ -9,7 +9,11 @@ int engine_initialize(struct Engine *engine,
                       double time_end,
                       uint32_t seed,
                       uint64_t num_vehicles,
+                      double vehicle_cost,
+                      double *unit_cost,
+                      double *unit_revenue,
                       uint64_t size,
+                      double *tolerance,
                       uint64_t *from,
                       uint64_t *to,
                       double *distance,
@@ -25,7 +29,11 @@ int engine_initialize(struct Engine *engine,
     int ret = model_initialize(&engine->model,
                                &engine->gen,
                                num_vehicles,
+                               vehicle_cost,
+                               unit_cost,
+                               unit_revenue,
                                size,
+                               tolerance,
                                from,
                                to,
                                distance,
@@ -44,12 +52,19 @@ int engine_initialize(struct Engine *engine,
     return ERR_OK;
 }
 
+static void engine_event_print(void *data) {
+    struct Event *event = (struct Event*)data;
+    event_print(event);
+}
+
 static void print_engine(struct Engine *engine) {
+    puts("Engine:");
     printf("time_now: %lf\ntime_end: %lf\n",
            engine->time_now,
            engine->time_end);
     if (engine->events.size) {
-        event_print(engine->events.heap->data);
+        puts("Events:");
+        priority_queue_print(&engine->events, engine_event_print);
     }
     model_print(&engine->model);
 }
@@ -59,9 +74,43 @@ static int main_loop(struct Engine *engine, uint8_t verbosity) {
         return ERR_INPUT_NULL;
     }
     engine->time_now = 0;
+    priority_queue_clear(&engine->events, 1);
+
+    struct Generator *iter_demand = engine->model.demand;
+    for (uint64_t i = 0; i < engine->model.map.size; ++i, ++iter_demand) {
+        struct Event *event = 0;
+        double next = 0;
+        uint32_t amt[3];
+        int ret = generator_generate_next(iter_demand, &next);
+        if (ret) {
+            return ret;
+        }
+        ret = generator_generate_amount(iter_demand, amt);
+        if (ret) {
+            return ret;
+        }
+        ret = event_demand_initialize(&event, i, amt);
+        if (ret) {
+            return ret;
+        }
+        ret = priority_queue_add(&engine->events, next, event);
+        if (ret) {
+            return ret;
+        }
+    }
 
     if (verbosity == 2) {
         print_engine(engine);
+    }
+
+    for (; engine->events.size && engine->time_now < engine->time_end;) {
+        int ret = event_handle(engine->events.heap->data, engine);
+        if (ret) {
+            return ret;
+        }
+        if (verbosity == 2) {
+            print_engine(engine);
+        }
     }
     return ERR_OK;
 }
@@ -88,6 +137,6 @@ int engine_finalize(struct Engine *engine) {
         return ERR_INPUT_NULL;
     }
     model_finalize(&engine->model);
-    priority_queue_finalize(&engine->events);
+    priority_queue_finalize(&engine->events, 1);
     return ERR_OK;
 }

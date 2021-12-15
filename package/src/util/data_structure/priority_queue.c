@@ -31,7 +31,7 @@ int graph_key_comp(double a, double b) {
     } else if (b == -1) {
         return -1;
     } else {
-        return a - b;
+        return a > b ? 1 : (a == b ? 0 : -1);
     }
 }
 static void heapify_up(struct PriorityQueueNode *heap,
@@ -107,20 +107,47 @@ static void heapify_down(struct PriorityQueueNode *head,
     }
 }
 
-int priority_queue_remove(struct PriorityQueue *pq) {
+int priority_queue_remove(struct PriorityQueue *pq, char remove_data) {
     if (!pq) {
         return ERR_INPUT_NULL;
     }
+    if (!pq->size) {
+        return ERR_PQ_REMOVE_EMPTY;
+    }
     --pq->size;
     --pq->tail;
+    if (remove_data) {
+        free(pq->heap->data);
+    }
     swap(pq->tail, pq->heap);
     heapify_down(pq->heap, pq->size);
     return ERR_OK;
 }
 
-int priority_queue_finalize(struct PriorityQueue *pq) {
+int priority_queue_clear(struct PriorityQueue *pq, char remove_data) {
     if (!pq) {
         return ERR_INPUT_NULL;
+    }
+    if (remove_data) {
+        struct PriorityQueueNode *iter = pq->heap;
+        for (uint64_t i = 0; i < pq->size; ++i, ++iter) {
+            free(iter->data);
+        }
+    }
+    pq->size = 0;
+    pq->tail = pq->heap;
+    return ERR_OK;
+}
+
+int priority_queue_finalize(struct PriorityQueue *pq, char remove_data) {
+    if (!pq) {
+        return ERR_INPUT_NULL;
+    }
+    if (remove_data) {
+        struct PriorityQueueNode *iter = pq->heap;
+        for (uint64_t i = 0; i < pq->size; ++i, ++iter) {
+            free(iter->data);
+        }
     }
     free(pq->heap);
     return ERR_OK;

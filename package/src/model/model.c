@@ -9,10 +9,19 @@ struct Vehicle {
     uint64_t idx, location;
 };
 
+struct Order {
+    uint64_t dest;
+    uint32_t amt[3], cur[3];
+};
+
 int model_initialize(struct Model *model,
                      struct MT19937 *gen,
                      uint64_t num_vehicles,
+                     double vehicle_cost,
+                     double *unit_cost,
+                     double *unit_revenue,
                      uint64_t size,
+                     double *tolerance,
                      uint64_t *from,
                      uint64_t *to,
                      double *distance,
@@ -21,6 +30,9 @@ int model_initialize(struct Model *model,
                      uint32_t *upper_limit,
                      double *production_rate) {
     if (!model ||
+        !unit_cost ||
+        !unit_revenue ||
+        !tolerance ||
         !from ||
         !to ||
         !distance ||
@@ -33,6 +45,9 @@ int model_initialize(struct Model *model,
     list_initialize(&model->orders);
     list_initialize(&model->parked_vehicles);
     model->num_vehicles = num_vehicles;
+    model->vehicle_cost = vehicle_cost;
+    memcpy(model->unit_cost, unit_cost, sizeof(double) * 3);
+    memcpy(model->unit_revenue, unit_revenue, sizeof(double) * 3);
     int ret = graph_initialize(&model->map,
                                size,
                                from,
@@ -42,9 +57,18 @@ int model_initialize(struct Model *model,
     if (ret) {
         return ret;
     }
+
+    model->tolerance = malloc(sizeof(double) * size);
+    if (!model->tolerance) {
+        graph_finalize(&model->map);
+        return ERR_OUT_OF_MEM;
+    }
+    memcpy(model->tolerance, tolerance, sizeof(double) * size);
+
     model->demand = malloc(sizeof(struct Generator) * size);
     if (!model->demand) {
         graph_finalize(&model->map);
+        free(model->tolerance);
         return ERR_OUT_OF_MEM;
     }
     struct Generator *iter_demand = model->demand;
@@ -74,9 +98,11 @@ int model_initialize(struct Model *model,
     model->vehicles = malloc(sizeof(struct Vehicle) * num_vehicles);
     if (!model->vehicles) {
         free(model->demand);
+        free(model->tolerance);
         graph_finalize(&model->map);
         return ERR_OUT_OF_MEM;
     }
+
     struct Vehicle *iter_vehicle = model->vehicles;
     for (uint64_t i = 0; i < num_vehicles; ++i, ++iter_vehicle) {
         iter_vehicle->idx = i;
@@ -86,8 +112,27 @@ int model_initialize(struct Model *model,
             free(model->demand);
             graph_finalize(&model->map);
             free(model->vehicles);
+            free(model->tolerance);
             return ret;
         }
+    }
+    return ERR_OK;
+}
+
+int model_add_order(struct Model *model, uint64_t dest, uint32_t *amt) {
+    if (!model || !amt) {
+        return ERR_INPUT_NULL;
+    }
+    struct Order *order = malloc(sizeof(struct Order));
+    if (!order) {
+        return ERR_OUT_OF_MEM;
+    }
+    order->dest = dest;
+    memcpy(order->amt, amt, sizeof(uint32_t) * 3);
+    memset(order->cur, 0, sizeof(uint32_t) * 3);
+    int ret = list_push_back(&model->orders, order);
+    if (ret) {
+        return ret;
     }
     return ERR_OK;
 }
@@ -98,11 +143,24 @@ static void print_vehicle(void *data) {
             ((struct Vehicle*)data)->location);
 }
 
+static void print_order(void *data) {
+    struct Order *order = (struct Order*)data;
+    printf("dest: %lu\namt: [%u, %u, %u]\ncur: [%u, %u, %u]\n",
+           order->dest,
+           order->amt[0],
+           order->amt[1],
+           order->amt[2],
+           order->cur[0],
+           order->cur[1],
+           order->cur[2]);
+}
+
 int model_print(struct Model *model) {
     if (!model) {
         return ERR_INPUT_NULL;
     }
     puts("Model:");
+    printf("Vehicle Cost: %lf\n", model->vehicle_cost);
     puts("Vehicles:");
     struct Vehicle *iter_vehicle = model->vehicles;
     for (uint64_t i = 0; i < model->num_vehicles; ++i, ++iter_vehicle) {
@@ -115,10 +173,31 @@ int model_print(struct Model *model) {
     if (ret) {
         return ret;
     }
+    puts("Orders:");
+    ret = list_print(&model->orders, print_order);
+    if (ret) {
+        return ret;
+    }
     puts("Map:");
     ret = graph_print(&model->map);
     if (ret) {
         return ret;
+    }
+    puts("Unit Cost/Revenue:");
+    double *iter_unit_cost = model->unit_cost;
+    double *iter_unit_revenue = model->unit_revenue;
+    for (uint64_t i = 0; i < 3; ++i, ++iter_unit_cost, ++iter_unit_revenue) {
+        printf("idx: %lu\ncost: %lf\nrevenue: %lf\n",
+               i,
+               *iter_unit_cost,
+               *iter_unit_revenue);
+    }
+    puts("Tolerance:");
+    double *iter_tolerance = model->tolerance;
+    for (uint64_t i = 0; i < model->map.size; ++i, ++iter_tolerance) {
+        printf("idx: %lu\ntolerance: %lf\n",
+               i,
+               *iter_tolerance);
     }
     puts("Demand:");
     struct Generator *iter_demand = model->demand;
@@ -146,6 +225,7 @@ int model_finalize(struct Model *model) {
     list_finalize(&model->orders, 1);
     list_finalize(&model->parked_vehicles, 0);
     graph_finalize(&model->map);
+    free(model->tolerance);
     free(model->demand);
     free(model->vehicles);
     return ERR_OK;

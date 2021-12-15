@@ -9,8 +9,12 @@ int event_handle(struct Event *event, struct Engine *engine) {
     if (!event || !engine) {
         return ERR_INPUT_NULL;
     }
+    engine->time_now = engine->events.heap->key;
     int ret = event->handler(event, engine);
-    free(event);
+    if (ret) {
+        return ret;
+    }
+    ret = priority_queue_remove(&engine->events, 1);
     return ret;
 }
 

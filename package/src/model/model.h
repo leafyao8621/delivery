@@ -10,6 +10,7 @@
 struct Model {
     struct MT19937 *gen;
     uint64_t num_vehicles;
+    double vehicle_cost, unit_cost[3], unit_revenue[3], *tolerance;
     struct Vehicle *vehicles;
     struct List orders, parked_vehicles;
     struct Graph map;
@@ -19,7 +20,11 @@ struct Model {
 int model_initialize(struct Model *model,
                      struct MT19937 *gen,
                      uint64_t num_vehicles,
+                     double vehicle_cost,
+                     double *unit_cost,
+                     double *unit_revenue,
                      uint64_t size,
+                     double *tolerance,
                      uint64_t *from,
                      uint64_t *to,
                      double *distance,
@@ -27,6 +32,7 @@ int model_initialize(struct Model *model,
                      double *rate,
                      uint32_t *upper_limit,
                      double *production_rate);
+int model_add_order(struct Model *model, uint64_t dest, uint32_t *amt);
 int model_print(struct Model *model);
 int model_finalize(struct Model *model);
 

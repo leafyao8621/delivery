@@ -97,9 +97,9 @@ int graph_get_shortest(struct Graph *graph,
     char found = 0;
     for (; pq.size;) {
         struct GraphNode *current = (pq.heap)->data;
-        ret = priority_queue_remove(&pq);
+        ret = priority_queue_remove(&pq, 0);
         if (ret) {
-            return priority_queue_finalize(&pq);
+            return priority_queue_finalize(&pq, 0);
         }
         if (current->idx == to) {
             found = 1;
@@ -129,7 +129,7 @@ int graph_get_shortest(struct Graph *graph,
         }
     }
 
-    ret = priority_queue_finalize(&pq);
+    ret = priority_queue_finalize(&pq, 0);
     if (ret) {
         return ret;
     }
