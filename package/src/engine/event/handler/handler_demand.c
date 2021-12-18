@@ -30,7 +30,31 @@ int event_demand_handler(struct Event *event, struct Engine *engine) {
     if (ret) {
         return ret;
     }
-    ret = model_add_order(&engine->model, idx, amt);
+    struct Generator *iter_production = engine->model.production;
+    uint32_t *iter_amt = amt;
+    for (uint8_t i = 0; i < 3; ++i, ++iter_production, ++iter_amt) {
+        double cur = engine->time_now;
+        for (uint32_t j = 0; j < *iter_amt; ++j) {
+            ret = generator_generate_next(iter_production, &next);
+            if (ret) {
+                return ret;
+            }
+            cur += next;
+            ret = event_production_initialize(&next_event, i);
+            if (ret) {
+                return ret;
+            }
+            ret = priority_queue_add(&engine->events, cur, next_event);
+            if (ret) {
+                return ret;
+            }
+        }
+    }
+    ret = model_add_order(&engine->model,
+                          idx,
+                          amt,
+                          engine->time_now +
+                          engine->model.tolerance[idx]);
     if (ret) {
         return ret;
     }

@@ -72,7 +72,7 @@ int main(void) {
     };
     struct Engine engine;
     int ret = engine_initialize(&engine,
-                                360,
+                                36,
                                 1000,
                                 3,
                                 10000,

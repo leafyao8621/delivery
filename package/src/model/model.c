@@ -12,6 +12,7 @@ struct Vehicle {
 struct Order {
     uint64_t dest;
     uint32_t amt[3], cur[3];
+    double expiration;
 };
 
 int model_initialize(struct Model *model,
@@ -46,6 +47,10 @@ int model_initialize(struct Model *model,
     list_initialize(&model->parked_vehicles);
     model->num_vehicles = num_vehicles;
     model->vehicle_cost = vehicle_cost;
+    model->stats.profit = num_vehicles * (-vehicle_cost);
+    model->stats.num_delivered = 0;
+    model->stats.num_dropped = 0;
+    model->stats.lead_time = 0;
     memcpy(model->unit_cost, unit_cost, sizeof(double) * 3);
     memcpy(model->unit_revenue, unit_revenue, sizeof(double) * 3);
     int ret = graph_initialize(&model->map,
@@ -93,6 +98,7 @@ int model_initialize(struct Model *model,
          ++i,
          ++iter_production,
          ++iter_production_rate) {
+        iter_production->gen = model->gen;
         iter_production->rate = *iter_production_rate;
     }
     model->vehicles = malloc(sizeof(struct Vehicle) * num_vehicles);
@@ -119,7 +125,10 @@ int model_initialize(struct Model *model,
     return ERR_OK;
 }
 
-int model_add_order(struct Model *model, uint64_t dest, uint32_t *amt) {
+int model_add_order(struct Model *model,
+                    uint64_t dest,
+                    uint32_t *amt,
+                    double expiration) {
     if (!model || !amt) {
         return ERR_INPUT_NULL;
     }
@@ -130,6 +139,12 @@ int model_add_order(struct Model *model, uint64_t dest, uint32_t *amt) {
     order->dest = dest;
     memcpy(order->amt, amt, sizeof(uint32_t) * 3);
     memset(order->cur, 0, sizeof(uint32_t) * 3);
+    double *iter_unit_cost = model->unit_cost;
+    uint32_t *iter_amt = amt;
+    for (uint8_t i = 0; i < 3; ++i, ++iter_unit_cost, ++iter_amt) {
+        model->stats.profit -= *iter_unit_cost * *iter_amt;
+    }
+    order->expiration = expiration;
     int ret = list_push_back(&model->orders, order);
     if (ret) {
         return ret;
@@ -145,14 +160,15 @@ static void print_vehicle(void *data) {
 
 static void print_order(void *data) {
     struct Order *order = (struct Order*)data;
-    printf("dest: %lu\namt: [%u, %u, %u]\ncur: [%u, %u, %u]\n",
+    printf("dest: %lu\namt: [%u, %u, %u]\ncur: [%u, %u, %u]\nexpiration: %lf\n",
            order->dest,
            order->amt[0],
            order->amt[1],
            order->amt[2],
            order->cur[0],
            order->cur[1],
-           order->cur[2]);
+           order->cur[2],
+           order->expiration);
 }
 
 int model_print(struct Model *model) {
@@ -160,6 +176,12 @@ int model_print(struct Model *model) {
         return ERR_INPUT_NULL;
     }
     puts("Model:");
+    puts("Stats:");
+    printf("profit: %lf\nnum_delivered: %lu\nnum_dropped: %lu\nlead_time: %lf\n",
+           model->stats.profit,
+           model->stats.num_delivered,
+           model->stats.num_dropped,
+           model->stats.lead_time);
     printf("Vehicle Cost: %lf\n", model->vehicle_cost);
     puts("Vehicles:");
     struct Vehicle *iter_vehicle = model->vehicles;
