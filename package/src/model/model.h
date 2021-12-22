@@ -7,6 +7,17 @@
 #include "../util/data_structure/graph.h"
 #include "../util/generator/generator.h"
 
+struct Vehicle {
+    uint64_t idx, location;
+};
+
+struct Order {
+    uint64_t id;
+    uint64_t dest;
+    uint32_t amt[3], cur[3];
+    double expiration;
+};
+
 struct Model {
     struct MT19937 *gen;
     uint64_t num_vehicles;
@@ -17,6 +28,7 @@ struct Model {
     struct Generator *demand, production[3];
     struct {
         double profit;
+        uint64_t num_orders;
         uint64_t num_delivered;
         uint64_t num_dropped;
         double lead_time;
@@ -42,6 +54,7 @@ int model_add_order(struct Model *model,
                     uint64_t dest,
                     uint32_t *amt,
                     double expiration);
+int model_remove_order(struct Model *model, uint64_t id);
 int model_print(struct Model *model);
 int model_finalize(struct Model *model);
 

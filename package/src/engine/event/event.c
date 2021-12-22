@@ -37,12 +37,15 @@ int event_demand_initialize(struct Event **event, uint64_t idx, uint32_t *amt) {
     return ERR_OK;
 }
 
-int event_production_initialize(struct Event **event, uint8_t idx) {
+int event_production_initialize(struct Event **event,
+                                uint64_t id,
+                                uint8_t idx) {
     *event = malloc(sizeof(struct Event));
     if (!event) {
         return ERR_OUT_OF_MEM;
     }
-    (*event)->data.production = idx;
+    (*event)->data.production.id = id;
+    (*event)->data.production.idx = idx;
     (*event)->handler = event_production_handler;
     (*event)->printer = event_production_printer;
     return ERR_OK;

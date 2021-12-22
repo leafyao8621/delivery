@@ -5,16 +5,6 @@
 #include "model.h"
 #include "../util/errcode.h"
 
-struct Vehicle {
-    uint64_t idx, location;
-};
-
-struct Order {
-    uint64_t dest;
-    uint32_t amt[3], cur[3];
-    double expiration;
-};
-
 int model_initialize(struct Model *model,
                      struct MT19937 *gen,
                      uint64_t num_vehicles,
@@ -48,6 +38,7 @@ int model_initialize(struct Model *model,
     model->num_vehicles = num_vehicles;
     model->vehicle_cost = vehicle_cost;
     model->stats.profit = num_vehicles * (-vehicle_cost);
+    model->stats.num_orders = 0;
     model->stats.num_delivered = 0;
     model->stats.num_dropped = 0;
     model->stats.lead_time = 0;
@@ -136,6 +127,7 @@ int model_add_order(struct Model *model,
     if (!order) {
         return ERR_OUT_OF_MEM;
     }
+    order->id = model->stats.num_orders++;
     order->dest = dest;
     memcpy(order->amt, amt, sizeof(uint32_t) * 3);
     memset(order->cur, 0, sizeof(uint32_t) * 3);
@@ -152,6 +144,31 @@ int model_add_order(struct Model *model,
     return ERR_OK;
 }
 
+int model_remove_order(struct Model *model, uint64_t id) {
+    if (!model) {
+        return ERR_INPUT_NULL;
+    }
+    struct ListNode *iter = model->orders.front;
+    for (;
+         iter &&
+         ((struct Order*)(iter->data))->id != id;
+         iter = iter->next);
+    if (iter) {
+        free(iter->data);
+        if (iter == model->orders.front) {
+            list_pop_front(&model->orders);
+        } else if (iter == model->orders.back) {
+            list_pop_back(&model->orders);
+        } else {
+            iter->prev->next = iter->next;
+            iter->next->prev = iter->prev;
+            free(iter);
+        }
+    }
+
+    return ERR_OK;
+}
+
 static void print_vehicle(void *data) {
     printf("idx: %lu\nlocation: %lu\n",
             ((struct Vehicle*)data)->idx,
@@ -160,7 +177,8 @@ static void print_vehicle(void *data) {
 
 static void print_order(void *data) {
     struct Order *order = (struct Order*)data;
-    printf("dest: %lu\namt: [%u, %u, %u]\ncur: [%u, %u, %u]\nexpiration: %lf\n",
+    printf("id: %lu\ndest: %lu\namt: [%u, %u, %u]\ncur: [%u, %u, %u]\nexpiration: %lf\n",
+           order->id,
            order->dest,
            order->amt[0],
            order->amt[1],

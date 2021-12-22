@@ -32,7 +32,14 @@ int event_demand_handler(struct Event *event, struct Engine *engine) {
     }
     struct Generator *iter_production = engine->model.production;
     uint32_t *iter_amt = amt;
-    for (uint8_t i = 0; i < 3; ++i, ++iter_production, ++iter_amt) {
+    double *iter_cost = engine->model.unit_cost;
+    for (uint8_t i = 0;
+         i < 3;
+         ++i,
+         ++iter_production,
+         ++iter_amt,
+         ++iter_cost) {
+        engine->model.stats.profit -= *iter_cost * *iter_amt;
         double cur = engine->time_now;
         for (uint32_t j = 0; j < *iter_amt; ++j) {
             ret = generator_generate_next(iter_production, &next);
@@ -40,7 +47,9 @@ int event_demand_handler(struct Event *event, struct Engine *engine) {
                 return ret;
             }
             cur += next;
-            ret = event_production_initialize(&next_event, i);
+            ret = event_production_initialize(&next_event,
+                                              engine->model.stats.num_orders,
+                                              i);
             if (ret) {
                 return ret;
             }
