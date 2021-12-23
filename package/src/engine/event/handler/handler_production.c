@@ -26,7 +26,7 @@ int event_production_handler(struct Event *event, struct Engine *engine) {
                 if (engine->model.parked_vehicles.front) {
                     struct Order data = *order;
                     int ret = model_remove_order(&engine->model,
-                                                event->data.production.id);
+                                                 data.id);
                     if (ret) {
                         return ret;
                     }

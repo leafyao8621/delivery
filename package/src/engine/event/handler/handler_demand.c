@@ -32,16 +32,13 @@ int event_demand_handler(struct Event *event, struct Engine *engine) {
     }
     struct Generator *iter_production = engine->model.production;
     uint32_t *iter_amt = amt;
-    double *iter_cost = engine->model.unit_cost;
     double *iter_last_production = engine->model.last_production;
     for (uint8_t i = 0;
          i < 3;
          ++i,
          ++iter_production,
          ++iter_amt,
-         ++iter_cost,
          ++iter_last_production) {
-        engine->model.stats.profit -= *iter_cost * *iter_amt;
         double cur = *iter_last_production > engine->time_now ?
                      *iter_last_production :
                      engine->time_now;

@@ -137,10 +137,17 @@ int model_add_order(struct Model *model,
     double *iter_unit_cost = model->unit_cost;
     double *iter_unit_revenue = model->unit_revenue;
     uint32_t *iter_amt = amt;
-    for (uint8_t i = 0; i < 3; ++i, ++iter_unit_cost, ++iter_amt) {
-        model->stats.profit -= *iter_unit_cost * *iter_amt;
+    double cost = 0;
+    for (uint8_t i = 0;
+         i < 3;
+         ++i,
+         ++iter_unit_cost,
+         ++iter_amt,
+         ++iter_unit_revenue) {
+        cost += *iter_unit_cost * *iter_amt;
         order->revenue += *iter_unit_revenue * *iter_amt;
     }
+    model->stats.profit -= cost;
     order->expiration = expiration;
     int ret = list_push_back(&model->orders, order);
     if (ret) {
@@ -303,9 +310,7 @@ int model_reset(struct Model *model) {
     }
     for (;
          model->parked_vehicles.front;
-         list_pop_front(&model->parked_vehicles)) {
-        free(model->parked_vehicles.front->data);
-    }
+         list_pop_front(&model->parked_vehicles));
     int ret = ERR_OK;
     struct Vehicle *iter_vehicle = model->vehicles;
     for (uint64_t i = 0; i < model->num_vehicles; ++i, ++iter_vehicle) {

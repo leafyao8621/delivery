@@ -128,15 +128,17 @@ int engine_run(struct Engine *engine, uint64_t iter, uint8_t verbosity) {
         if (verbosity) {
             printf("iteration: %lu\n"
                    "profit: %lf\n"
-                   "num_orders: %lu\n",
+                   "num_orders: %lu\n"
+                   "num_delivered: %lu\n",
                    i,
                    engine->model.stats.profit,
-                   engine->model.stats.num_orders);
+                   engine->model.stats.num_orders,
+                   engine->model.stats.num_delivered);
         }
-        // ret = model_reset(&engine->model);
-        // if (ret) {
-        //     return ret;
-        // }
+        ret = model_reset(&engine->model);
+        if (ret) {
+            return ret;
+        }
     }
     return ret;
 }

@@ -42,7 +42,7 @@ static void heapify_up(struct PriorityQueueNode *heap,
     struct PriorityQueueNode *cur = tail;
     uint64_t next_idx = cur_idx >> 1;
     for (; cur_idx;) {
-        next_idx = cur_idx >> 1;
+        next_idx = ((cur_idx + 1) >> 1) - 1;
         if (graph_key_comp(heap[next_idx].key, cur->key) > 0) {
             swap(heap + next_idx, cur);
             cur_idx = next_idx;
