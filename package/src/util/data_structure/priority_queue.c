@@ -34,6 +34,7 @@ int graph_key_comp(double a, double b) {
         return a > b ? 1 : (a == b ? 0 : -1);
     }
 }
+
 static void heapify_up(struct PriorityQueueNode *heap,
                        struct PriorityQueueNode *tail,
                        uint64_t idx) {

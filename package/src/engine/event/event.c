@@ -63,11 +63,12 @@ int event_movement_initialize(struct Event **event, uint64_t idx, uint32_t to) {
     return ERR_OK;
 }
 
-int event_delivery_initialize(struct Event **event) {
+int event_delivery_initialize(struct Event **event, double revenue) {
     *event = malloc(sizeof(struct Event));
     if (!event) {
         return ERR_OUT_OF_MEM;
     }
+    (*event)->data.delivery = revenue;
     (*event)->handler = event_delivery_handler;
     (*event)->printer = event_delivery_printer;
     return ERR_OK;

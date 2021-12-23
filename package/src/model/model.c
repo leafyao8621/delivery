@@ -44,6 +44,7 @@ int model_initialize(struct Model *model,
     model->stats.lead_time = 0;
     memcpy(model->unit_cost, unit_cost, sizeof(double) * 3);
     memcpy(model->unit_revenue, unit_revenue, sizeof(double) * 3);
+    memset(model->last_production, 0, sizeof(double) * 3);
     int ret = graph_initialize(&model->map,
                                size,
                                from,
@@ -129,12 +130,16 @@ int model_add_order(struct Model *model,
     }
     order->id = model->stats.num_orders++;
     order->dest = dest;
+    order->fulfiled = 0;
+    order->revenue = 0;
     memcpy(order->amt, amt, sizeof(uint32_t) * 3);
     memset(order->cur, 0, sizeof(uint32_t) * 3);
     double *iter_unit_cost = model->unit_cost;
+    double *iter_unit_revenue = model->unit_revenue;
     uint32_t *iter_amt = amt;
     for (uint8_t i = 0; i < 3; ++i, ++iter_unit_cost, ++iter_amt) {
         model->stats.profit -= *iter_unit_cost * *iter_amt;
+        order->revenue += *iter_unit_revenue * *iter_amt;
     }
     order->expiration = expiration;
     int ret = list_push_back(&model->orders, order);
@@ -169,6 +174,31 @@ int model_remove_order(struct Model *model, uint64_t id) {
     return ERR_OK;
 }
 
+int model_launch_vehicle(struct Model *model) {
+    if (!model) {
+        return ERR_INPUT_NULL;
+    }
+    int ret = list_pop_front(&model->parked_vehicles);
+    if (ret) {
+        return ret;
+    }
+    return ERR_OK;
+}
+
+int model_park_vehicle(struct Model *model, uint64_t idx) {
+    if (!model) {
+        return ERR_INPUT_NULL;
+    }
+    if (idx >= model->num_vehicles) {
+        return ERR_MODEL_PARK_VEHICLE_IDX;
+    }
+    int ret = list_push_back(&model->parked_vehicles, model->vehicles + idx);
+    if (ret) {
+        return ret;
+    }
+    return ERR_OK;
+}
+
 static void print_vehicle(void *data) {
     printf("idx: %lu\nlocation: %lu\n",
             ((struct Vehicle*)data)->idx,
@@ -177,12 +207,18 @@ static void print_vehicle(void *data) {
 
 static void print_order(void *data) {
     struct Order *order = (struct Order*)data;
-    printf("id: %lu\ndest: %lu\namt: [%u, %u, %u]\ncur: [%u, %u, %u]\nexpiration: %lf\n",
+    printf("id: %lu\n"
+           "dest: %lu\n"
+           "amt: [%u, %u, %u]\n"
+           "revenue: %lf\n"
+           "cur: [%u, %u, %u]\n"
+           "expiration: %lf\n",
            order->id,
            order->dest,
            order->amt[0],
            order->amt[1],
            order->amt[2],
+           order->revenue,
            order->cur[0],
            order->cur[1],
            order->cur[2],
@@ -255,6 +291,37 @@ int model_print(struct Model *model) {
                i,
                iter_production->rate);
     }
+    return ERR_OK;
+}
+
+int model_reset(struct Model *model) {
+    if (!model) {
+        return ERR_INPUT_NULL;
+    }
+    for (; model->orders.front; list_pop_front(&model->orders)) {
+        free(model->orders.front->data);
+    }
+    for (;
+         model->parked_vehicles.front;
+         list_pop_front(&model->parked_vehicles)) {
+        free(model->parked_vehicles.front->data);
+    }
+    int ret = ERR_OK;
+    struct Vehicle *iter_vehicle = model->vehicles;
+    for (uint64_t i = 0; i < model->num_vehicles; ++i, ++iter_vehicle) {
+        iter_vehicle->idx = i;
+        iter_vehicle->location = 0;
+        ret = list_push_back(&model->parked_vehicles, iter_vehicle);
+        if (ret) {
+            return ret;
+        }
+    }
+    memset(model->last_production, 0, sizeof(double) * 3);
+    model->stats.profit = model->num_vehicles * (-model->vehicle_cost);
+    model->stats.num_orders = 0;
+    model->stats.num_delivered = 0;
+    model->stats.num_dropped = 0;
+    model->stats.lead_time = 0;
     return ERR_OK;
 }
 

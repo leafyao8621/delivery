@@ -16,12 +16,18 @@ struct Order {
     uint64_t dest;
     uint32_t amt[3], cur[3];
     double expiration;
+    double revenue;
+    uint8_t fulfiled;
 };
 
 struct Model {
     struct MT19937 *gen;
     uint64_t num_vehicles;
-    double vehicle_cost, unit_cost[3], unit_revenue[3], *tolerance;
+    double vehicle_cost,
+           unit_cost[3],
+           unit_revenue[3],
+           *tolerance,
+           last_production[3];
     struct Vehicle *vehicles;
     struct List orders, parked_vehicles;
     struct Graph map;
@@ -55,7 +61,10 @@ int model_add_order(struct Model *model,
                     uint32_t *amt,
                     double expiration);
 int model_remove_order(struct Model *model, uint64_t id);
+int model_launch_vehicle(struct Model *model);
+int model_park_vehicle(struct Model *model, uint64_t idx);
 int model_print(struct Model *model);
+int model_reset(struct Model *model);
 int model_finalize(struct Model *model);
 
 #endif

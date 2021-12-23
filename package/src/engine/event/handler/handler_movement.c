@@ -9,6 +9,8 @@ int event_movement_handler(struct Event *event, struct Engine *engine) {
     if (!event || !engine) {
         return ERR_INPUT_NULL;
     }
+    engine->model.vehicles[event->data.movement.idx].location =
+        event->data.movement.to;
     return ERR_OK;
 }
 

@@ -68,14 +68,14 @@ int main(void) {
         1, 2, 3
     };
     double production_rate[3] = {
-        2, 4, 6
+        10, 20, 30
     };
     struct Engine engine;
     int ret = engine_initialize(&engine,
-                                36,
-                                1000,
+                                10,
+                                100000,
                                 3,
-                                10000,
+                                100,
                                 unit_cost,
                                 unit_revenue,
                                 5,

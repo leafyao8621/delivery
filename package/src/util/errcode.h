@@ -9,7 +9,8 @@
 #define ERR_GRAPH_INITIALIZE_IDX 5
 #define ERR_GRAPH_GET_SHORTEST_IDX 6
 #define ERR_GRAPH_GET_SHORTEST_NOT_FOUND 7
+#define ERR_MODEL_PARK_VEHICLE_IDX 8
 
-extern const char *errcode_lookup[8];
+extern const char *errcode_lookup[9];
 
 #endif

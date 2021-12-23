@@ -19,6 +19,7 @@ struct Event {
             uint64_t idx;
             uint32_t to;
         } movement;
+        double delivery;
         uint64_t rtb;
     } data;
     int (*handler)(struct Event*, struct Engine*);
@@ -30,7 +31,7 @@ int event_print(struct Event *event);
 int event_demand_initialize(struct Event **event, uint64_t idx, uint32_t *amt);
 int event_production_initialize(struct Event **event, uint64_t id, uint8_t idx);
 int event_movement_initialize(struct Event **event, uint64_t idx, uint32_t to);
-int event_delivery_initialize(struct Event **event);
+int event_delivery_initialize(struct Event **event, double revenue);
 int event_rtb_initialize(struct Event **event, uint64_t idx);
 
 #endif

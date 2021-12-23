@@ -121,13 +121,22 @@ int engine_run(struct Engine *engine, uint64_t iter, uint8_t verbosity) {
     }
     int ret = ERR_OK;
     for (uint64_t i = 0; i < iter; ++i) {
-        if (verbosity) {
-            printf("iteration: %lu\n", i);
-        }
         ret = main_loop(engine, verbosity);
         if (ret) {
             return ret;
         }
+        if (verbosity) {
+            printf("iteration: %lu\n"
+                   "profit: %lf\n"
+                   "num_orders: %lu\n",
+                   i,
+                   engine->model.stats.profit,
+                   engine->model.stats.num_orders);
+        }
+        // ret = model_reset(&engine->model);
+        // if (ret) {
+        //     return ret;
+        // }
     }
     return ret;
 }

@@ -9,6 +9,7 @@ int event_delivery_handler(struct Event *event, struct Engine *engine) {
     if (!event || !engine) {
         return ERR_INPUT_NULL;
     }
+    engine->model.stats.profit += event->data.delivery;
     return ERR_OK;
 }
 
