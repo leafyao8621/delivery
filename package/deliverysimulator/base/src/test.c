@@ -50,13 +50,13 @@ int main(void) {
         0.1
     };
     double rate[7] = {
-        0.1,
-        0.1,
-        0.1,
-        0.5,
-        0.1,
-        0.1,
-        0.1
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
     };
     uint32_t upper_limit[21] = {
         4, 2, 3,
@@ -88,7 +88,7 @@ int main(void) {
                                 upper_limit,
                                 production_rate);
     LOG_ERR;
-    ret = engine_run(&engine, 1, 1);
+    ret = engine_run(&engine, 10, 1);
     LOG_ERR;
     ret = engine_finalize(&engine);
     LOG_ERR;

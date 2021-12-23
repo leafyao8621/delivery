@@ -25,8 +25,15 @@ int event_rtb_handler(struct Event *event, struct Engine *engine) {
                                  &path,
                                  &size);
         if (engine->time_now + path[size - 1]->distance >
-            order->expiration ||
-            !order->fulfiled) {
+            order->expiration) {
+            iter = iter->next;
+            ret = model_remove_order(&engine->model,
+                                     order->id);
+            if (ret) {
+                return ret;
+            }
+            graph_path_finalize(path);
+        } else if (!order->fulfiled) {
             iter = iter->next;
             graph_path_finalize(path);
         } else {
@@ -35,8 +42,8 @@ int event_rtb_handler(struct Event *event, struct Engine *engine) {
     }
     if (iter) {
         struct Order data = *order;
-        int ret = model_remove_order(&engine->model,
-                                     data.id);
+        ret = model_remove_order(&engine->model,
+                                 data.id);
         if (ret) {
             return ret;
         }
