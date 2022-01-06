@@ -36,8 +36,6 @@ struct Model {
         double profit;
         uint64_t num_orders;
         uint64_t num_delivered;
-        uint64_t num_dropped;
-        double lead_time;
     } stats;
 };
 

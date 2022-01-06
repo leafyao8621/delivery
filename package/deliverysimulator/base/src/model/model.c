@@ -40,8 +40,6 @@ int model_initialize(struct Model *model,
     model->stats.profit = num_vehicles * (-vehicle_cost);
     model->stats.num_orders = 0;
     model->stats.num_delivered = 0;
-    model->stats.num_dropped = 0;
-    model->stats.lead_time = 0;
     memcpy(model->unit_cost, unit_cost, sizeof(double) * 3);
     memcpy(model->unit_revenue, unit_revenue, sizeof(double) * 3);
     memset(model->last_production, 0, sizeof(double) * 3);
@@ -238,11 +236,10 @@ int model_print(struct Model *model) {
     }
     puts("Model:");
     puts("Stats:");
-    printf("profit: %lf\nnum_delivered: %lu\nnum_dropped: %lu\nlead_time: %lf\n",
+    printf("profit: %lf\nnum_orders: %lu\nnum_delivered: %lu\n",
            model->stats.profit,
-           model->stats.num_delivered,
-           model->stats.num_dropped,
-           model->stats.lead_time);
+           model->stats.num_orders,
+           model->stats.num_delivered);
     printf("Vehicle Cost: %lf\n", model->vehicle_cost);
     puts("Vehicles:");
     struct Vehicle *iter_vehicle = model->vehicles;
@@ -325,8 +322,6 @@ int model_reset(struct Model *model) {
     model->stats.profit = model->num_vehicles * (-model->vehicle_cost);
     model->stats.num_orders = 0;
     model->stats.num_delivered = 0;
-    model->stats.num_dropped = 0;
-    model->stats.lead_time = 0;
     return ERR_OK;
 }
 

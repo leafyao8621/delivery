@@ -115,12 +115,25 @@ static int main_loop(struct Engine *engine, uint8_t verbosity) {
     return ERR_OK;
 }
 
-int engine_run(struct Engine *engine, uint64_t iter, uint8_t verbosity) {
-    if (!engine) {
+int engine_run(struct Engine *engine,
+               uint64_t iter,
+               uint8_t verbosity,
+               double *profit,
+               uint64_t *num_orders,
+               uint64_t *num_delivered) {
+    if (!engine || !profit || !num_orders || !num_delivered) {
         return ERR_INPUT_NULL;
     }
     int ret = ERR_OK;
-    for (uint64_t i = 0; i < iter; ++i) {
+    double *iter_profit = profit;
+    uint64_t *iter_num_orders = num_orders;
+    uint64_t *iter_num_delivered = num_delivered;
+    for (uint64_t i = 0;
+         i < iter;
+         ++i,
+         ++iter_profit,
+         ++iter_num_orders,
+         ++iter_num_delivered) {
         ret = main_loop(engine, verbosity);
         if (ret) {
             return ret;
@@ -135,6 +148,9 @@ int engine_run(struct Engine *engine, uint64_t iter, uint8_t verbosity) {
                    engine->model.stats.num_orders,
                    engine->model.stats.num_delivered);
         }
+        *iter_profit = engine->model.stats.profit;
+        *iter_num_orders = engine->model.stats.num_orders;
+        *iter_num_delivered = engine->model.stats.num_delivered;
         ret = model_reset(&engine->model);
         if (ret) {
             return ret;

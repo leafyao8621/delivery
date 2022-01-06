@@ -49,18 +49,14 @@ int main(void) {
         0.5,
         0.1
     };
-    double rate[7] = {
-        1,
-        1,
+    double rate[5] = {
         1,
         1,
         1,
         1,
         1
     };
-    uint32_t upper_limit[21] = {
-        4, 2, 3,
-        4, 2, 3,
+    uint32_t upper_limit[15] = {
         4, 2, 3,
         4, 2, 3,
         4, 2, 3,
@@ -88,9 +84,22 @@ int main(void) {
                                 upper_limit,
                                 production_rate);
     LOG_ERR;
-    ret = engine_run(&engine, 10, 1);
+    double profit[10];
+    uint64_t num_orders[10];
+    uint64_t num_delivered[10];
+    ret = engine_run(&engine, 10, 1, profit, num_orders, num_delivered);
     LOG_ERR;
     ret = engine_finalize(&engine);
     LOG_ERR;
+    for (int i = 0; i < 10; ++i) {
+        printf("iteration: %d\n"
+               "profit: %lf\n"
+               "num_orders: %lu\n"
+               "num_delivered: %lu\n",
+               i,
+               profit[i],
+               num_orders[i],
+               num_delivered[i]);
+    }
     return 0;
 }

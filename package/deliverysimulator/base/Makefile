@@ -4,7 +4,7 @@ OBJ = $(SRC:.c=.o)
 BIN = test
 
 %.o: %.c
-	$(CC) -Wall -Wextra -pedantic -Werror -g -c $< -o $@
+	$(CC) -Wall -Wextra -pedantic -Werror -O3 -c $< -o $@
 
 $(BIN): $(OBJ)
 	$(CC) $(OBJ) -o $(BIN) -lm

@@ -30,7 +30,12 @@ int engine_initialize(struct Engine *engine,
                       double *rate,
                       uint32_t *upper_limit,
                       double *production_rate);
-int engine_run(struct Engine *engine, uint64_t iter, uint8_t verbosity);
+int engine_run(struct Engine *engine,
+               uint64_t iter,
+               uint8_t verbosity,
+               double *profit,
+               uint64_t *num_orders,
+               uint64_t *num_delivered);
 int engine_finalize(struct Engine *engine);
 
 #endif
